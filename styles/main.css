@@ -1,136 +1,426 @@
-/* ABOUTME: Main stylesheet for native-static template */
-/* ABOUTME: Provides layout, typography, and theme styles without external dependencies */
+/* ============================================
+ * 方言主题 2048 - 全局样式
+ * 文件作用：定义游戏整体视觉风格、棋盘布局、
+ *          方块样式、动画效果、响应式适配
+ * ============================================ */
 
-/* Reset and base styles */
+/* --- CSS 变量：统一管理颜色、尺寸、动画参数 --- */
+:root {
+  /* 页面与棋盘颜色 */
+  --bg-page: #faf6f0;          /* 页面背景：暖米色 */
+  --bg-board: #776e65;         /* 棋盘底色：深棕 */
+  --bg-cell: #c9bfb5;          /* 空格子：浅棕 */
+  --text-dark: #776e65;        /* 深色文字 */
+  --text-light: #f9f6f2;       /* 浅色文字 */
+
+  /* 棋盘尺寸 */
+  --board-size: 420px;         /* 棋盘宽度（PC端） */
+  --cell-gap: 12px;            /* 格子间距 */
+  --cell-radius: 6px;          /* 格子圆角 */
+  --cell-size: calc((var(--board-size) - var(--cell-gap) * 5) / 4); /* 单个格子尺寸 */
+
+  /* 动画时长 */
+  --slide-duration: 150ms;     /* 滑动动画 */
+  --pop-duration: 200ms;       /* 弹出动画 */
+  --merge-duration: 200ms;     /* 合并动画 */
+}
+
+/* --- 全局重置 --- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* 禁止移动端选中文字 */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-:root {
-  /* Light theme colors */
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted-foreground: #71717a;
-
-  /* Spacing */
-  --spacing-2: 0.5rem;
-  --spacing-4: 1rem;
-  --spacing-16: 4rem;
-  --spacing-32: 8rem;
-
-  /* Typography */
-  --font-size-base: 1rem;
-  --font-size-sm: 0.875rem;
-  --line-height-tight: 1.25;
-  --line-height-relaxed: 2;
-  --letter-spacing-tight: -0.025em;
-
-  /* Transitions */
-  --transition-duration: 300ms;
-}
-
-/* Dark theme */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --muted-foreground: #a1a1aa;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  margin: 0;
-  padding: 0;
-}
-
-/* App container */
-#app {
-  display: flex;
+html, body {
   height: 100%;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
-/* Main content wrapper */
-.main-wrapper {
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-dark);
   display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* 禁止移动端双指缩放 */
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+/* --- 游戏容器 --- */
+.game-container {
+  width: var(--board-size);
+  max-width: 100vw;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* --- 顶部区域：标题 + 分数 --- */
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-title {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.scores {
+  display: flex;
+  gap: 8px;
+}
+
+/* 分数面板 */
+.score-box {
+  background: var(--bg-board);
+  color: var(--text-light);
+  border-radius: var(--cell-radius);
+  padding: 8px 16px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.score-box .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.score-box .value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* 分数增加动画 */
+.score-addition {
+  position: absolute;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  animation: score-pop 600ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes score-pop {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
+/* --- 副标题 + 新游戏按钮 --- */
+.sub-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-desc {
+  font-size: 13px;
+  color: #9e948a;
+  line-height: 1.4;
+}
+
+.btn-new-game {
+  background: #8f7a66;
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--cell-radius);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-new-game:hover {
+  background: #a08b76;
+}
+
+.btn-new-game:active {
+  transform: scale(0.97);
+}
+
+/* --- 棋盘容器 --- */
+.board-wrapper {
+  position: relative;
+  width: var(--board-size);
+  height: var(--board-size);
+  background: var(--bg-board);
+  border-radius: 8px;
+  padding: var(--cell-gap);
+  /* 防止棋盘被触摸时触发页面滚动 */
+  touch-action: none;
+}
+
+/* 底层网格（空格子） */
+.grid-bg {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: var(--cell-gap);
   width: 100%;
   height: 100%;
-  max-width: 48rem;
-  flex-direction: column;
-  align-items: center;
+}
+
+.grid-cell {
+  background: var(--bg-cell);
+  border-radius: var(--cell-radius);
+}
+
+/* 方块层（绝对定位覆盖在网格上） */
+.tile-layer {
+  position: absolute;
+  top: var(--cell-gap);
+  left: var(--cell-gap);
+  /* 宽高 = 棋盘 - 2倍padding */
+  width: calc(var(--board-size) - var(--cell-gap) * 2);
+  height: calc(var(--board-size) - var(--cell-gap) * 2);
+}
+
+/* --- 方块样式 --- */
+.tile {
+  position: absolute;
+  display: flex;
   justify-content: center;
-  padding-left: var(--spacing-16);
-  padding-right: var(--spacing-16);
-  padding-top: var(--spacing-32);
-  padding-bottom: var(--spacing-32);
-}
-
-/* Content container */
-.content-container {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-}
-
-/* Logo image */
-.logo-image {
-  width: 156px;
-  height: 130px;
-  object-fit: contain;
-}
-
-/* Text container */
-.text-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-2);
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: var(--cell-radius);
+  font-weight: 700;
   text-align: center;
+  /* 滑动过渡动画 */
+  transition: top var(--slide-duration) ease-in-out,
+              left var(--slide-duration) ease-in-out;
+  z-index: 10;
+  padding: 4px;
+  line-height: 1.2;
+  word-break: break-all;
 }
 
-/* Heading */
-.heading {
-  max-width: 36rem;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  line-height: var(--line-height-tight);
-  letter-spacing: var(--letter-spacing-tight);
-  color: var(--foreground);
+/* 新方块弹出动画 */
+.tile-new {
+  animation: tile-appear var(--pop-duration) ease-out;
 }
 
-/* Description text */
-.description {
-  max-width: 42rem;
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-relaxed);
-  color: var(--muted-foreground);
+/* 合并弹跳动画 */
+.tile-merged {
+  animation: tile-merge var(--merge-duration) ease-out;
+  z-index: 20;
 }
 
-/* Responsive design */
-@media (max-width: 640px) {
-  .main-wrapper {
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+@keyframes tile-appear {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes tile-merge {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* --- 方块颜色主题（按数值等级） --- */
+.tile-2    { background: #eee4da; color: var(--text-dark); font-size: 28px; }
+.tile-4    { background: #ede0c8; color: var(--text-dark); font-size: 26px; }
+.tile-8    { background: #f2b179; color: var(--text-light); font-size: 24px; }
+.tile-16   { background: #f59563; color: var(--text-light); font-size: 22px; }
+.tile-32   { background: #f67c5f; color: var(--text-light); font-size: 22px; }
+.tile-64   { background: #f65e3b; color: var(--text-light); font-size: 22px; }
+.tile-128  { background: #edcf72; color: var(--text-light); font-size: 18px;
+             box-shadow: 0 0 12px 2px rgba(237, 207, 114, 0.4); }
+.tile-256  { background: #edcc61; color: var(--text-light); font-size: 18px;
+             box-shadow: 0 0 16px 4px rgba(237, 204, 97, 0.5); }
+.tile-512  { background: #edc850; color: var(--text-light); font-size: 18px;
+             box-shadow: 0 0 20px 6px rgba(237, 200, 80, 0.5); }
+.tile-1024 { background: #edc53f; color: var(--text-light); font-size: 16px;
+             box-shadow: 0 0 28px 8px rgba(237, 197, 63, 0.6); }
+
+/* --- 游戏结束 / 胜利遮罩 --- */
+.game-message {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(238, 228, 218, 0.73);
+  border-radius: 8px;
+  z-index: 100;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  animation: fade-in 300ms ease-out;
+}
+
+.game-message.active {
+  display: flex;
+}
+
+.game-message.win {
+  background: rgba(237, 194, 46, 0.5);
+}
+
+.game-message .msg-text {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.game-message .btn-retry {
+  background: #8f7a66;
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--cell-radius);
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.game-message .btn-retry:hover {
+  background: #a08b76;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- 底部说明 --- */
+.footer {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #9e948a;
+  line-height: 1.6;
+  padding-top: 4px;
+}
+
+.footer strong {
+  color: var(--text-dark);
+}
+
+/* --- 方言对照表 --- */
+.legend {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  font-size: 11px;
+  color: #9e948a;
+}
+
+.legend-item {
+  text-align: center;
+  padding: 4px 2px;
+  background: rgba(119, 110, 101, 0.08);
+  border-radius: 4px;
+}
+
+.legend-item .dialect-word {
+  font-weight: 700;
+  color: var(--text-dark);
+  font-size: 12px;
+}
+
+/* ============================================
+ * 响应式适配：移动端
+ * ============================================ */
+@media screen and (max-width: 480px) {
+  :root {
+    --board-size: calc(100vw - 32px);
+    --cell-gap: 8px;
+    --cell-radius: 4px;
   }
 
-  .logo-image {
-    width: 120px;
-    height: 100px;
+  .game-container {
+    padding: 8px;
+    gap: 10px;
   }
+
+  .game-title {
+    font-size: 28px;
+  }
+
+  .score-box {
+    padding: 6px 10px;
+    min-width: 60px;
+  }
+
+  .score-box .value {
+    font-size: 18px;
+  }
+
+  .game-desc {
+    font-size: 11px;
+  }
+
+  .btn-new-game {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* 方块文字适配小屏 */
+  .tile-2    { font-size: 20px; }
+  .tile-4    { font-size: 18px; }
+  .tile-8    { font-size: 17px; }
+  .tile-16   { font-size: 15px; }
+  .tile-32   { font-size: 15px; }
+  .tile-64   { font-size: 15px; }
+  .tile-128  { font-size: 13px; }
+  .tile-256  { font-size: 13px; }
+  .tile-512  { font-size: 13px; }
+  .tile-1024 { font-size: 11px; }
+
+  .game-message .msg-text {
+    font-size: 32px;
+  }
+
+  .legend {
+    grid-template-columns: repeat(5, 1fr);
+    font-size: 10px;
+  }
+
+  .legend-item .dialect-word {
+    font-size: 10px;
+  }
+}
+
+/* 超小屏幕（如 iPhone SE） */
+@media screen and (max-width: 360px) {
+  :root {
+    --cell-gap: 6px;
+  }
+
+  .game-title {
+    font-size: 24px;
+  }
+
+  .tile-2    { font-size: 16px; }
+  .tile-4    { font-size: 15px; }
+  .tile-8    { font-size: 14px; }
+  .tile-16   { font-size: 12px; }
+  .tile-32   { font-size: 12px; }
+  .tile-64   { font-size: 12px; }
+  .tile-128  { font-size: 11px; }
+  .tile-256  { font-size: 11px; }
+  .tile-512  { font-size: 11px; }
+  .tile-1024 { font-size: 10px; }
 }
