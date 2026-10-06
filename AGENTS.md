@@ -14,11 +14,13 @@
 
 ```
 .
-├── index.html          # 主页面（游戏结构、方言对照表、操作说明）
+├── index.html          # 主页面（游戏结构、语音开关、方言对照表、操作说明）
 ├── styles/
-│   └── main.css        # 全局样式（棋盘、方块、动画、响应式适配）
+│   └── main.css        # 全局样式（棋盘、方块、动画、语音按钮、响应式适配）
 ├── scripts/
-│   └── game.js         # 游戏核心逻辑（移动、合并、生成、胜负判定、操控）
+│   └── game.js         # 游戏核心逻辑（移动、合并、生成、胜负判定、语音播放、操控）
+├── audio/              # 方言语音资源（10 个 MP3，合并时播报）
+│   ├── tile-2.mp3 ~ tile-1024.mp3
 ├── DESIGN.md           # 设计规范文件
 └── .coze               # 项目配置（构建/运行命令）
 ```
@@ -31,6 +33,7 @@
 4. **动画效果**：滑动过渡、合并弹跳、新方块弹出
 5. **响应式布局**：PC 端 + 移动端自适应
 6. **分数系统**：当前分数 + 最高分（localStorage 持久化）
+7. **方言语音**：原生 `<audio>` 标签绑定音频，方块合并时播报对应词汇；默认关闭，由玩家点击开关开启，开关状态持久化；音频加载/播放失败自动容错，不阻塞游戏
 
 ## 关键文件定位
 
@@ -39,6 +42,9 @@
 - 修改棋盘尺寸：`styles/main.css` → `:root` 中的 `--board-size` 变量
 - 修改动画时长：`styles/main.css` → `:root` 中的 `--slide-duration` 等变量
 - 修改胜利条件：`scripts/game.js` → `WIN_VALUE` 常量
+- 修改语音播放逻辑：`scripts/game.js` → `SoundManager` 对象
+- 语音资源与方块的绑定：`index.html` → `#audio-pool` 中 audio 的 `data-value` 属性
+- 语音按钮样式：`styles/main.css` → `.btn-sound` / `.sound-on` 类
 
 ## 运行方式
 

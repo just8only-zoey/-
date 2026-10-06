@@ -71,6 +71,112 @@
   const msgText       = document.getElementById("msg-text");
   const btnRetry      = document.getElementById("btn-retry");
   const btnNewGame    = document.getElementById("btn-new-game");
+  const btnSound      = document.getElementById("btn-sound");
+
+  /* ========== 语音模块 ========== */
+
+  /**
+   * 语音管理器：负责方言发音的开关、播放与容错
+   * - 开关状态通过 localStorage 持久化，默认关闭（遵守浏览器自动播放策略）
+   * - 只有玩家主动点击开关后才允许播放音频
+   */
+  const SoundManager = {
+    /** 是否开启语音（默认关闭，页面加载时绝不自动播放） */
+    enabled: false,
+
+    /** 缓存数值 → audio 元素的映射表 */
+    audios: {},
+
+    /** localStorage 存储键名 */
+    STORAGE_KEY: "dialect2048_sound",
+
+    /**
+     * 初始化：收集页面上的原生 audio 元素、恢复上次开关状态、绑定容错事件
+     */
+    init: function () {
+      const self = this;
+
+      /* 收集 #audio-pool 中所有带 data-value 的 audio 元素 */
+      const audioEls = document.querySelectorAll("#audio-pool .game-audio");
+      audioEls.forEach(function (el) {
+        const value = Number(el.getAttribute("data-value"));
+        self.audios[value] = el;
+
+        /* 音频加载失败容错：仅记录警告，不抛出错误、不阻塞游戏 */
+        el.addEventListener("error", function () {
+          console.warn("[语音] 音频加载失败：" + el.getAttribute("src"));
+        });
+      });
+
+      /* 读取上次的开关状态（仅允许 "true" 时开启） */
+      this.enabled = localStorage.getItem(this.STORAGE_KEY) === "true";
+
+      /* 根据状态同步按钮外观 */
+      this.syncButton();
+    },
+
+    /**
+     * 切换语音开关
+     * @returns {boolean} 切换后的状态
+     */
+    toggle: function () {
+      this.enabled = !this.enabled;
+      localStorage.setItem(this.STORAGE_KEY, String(this.enabled));
+      this.syncButton();
+      return this.enabled;
+    },
+
+    /**
+     * 同步开关按钮的样式类、无障碍属性与提示文案
+     */
+    syncButton: function () {
+      if (this.enabled) {
+        btnSound.classList.add("sound-on");
+        btnSound.classList.remove("sound-off");
+        btnSound.setAttribute("aria-pressed", "true");
+        btnSound.setAttribute("aria-label", "关闭语音");
+      } else {
+        btnSound.classList.add("sound-off");
+        btnSound.classList.remove("sound-on");
+        btnSound.setAttribute("aria-pressed", "false");
+        btnSound.setAttribute("aria-label", "开启语音");
+      }
+    },
+
+    /**
+     * 播放指定方块数值对应的方言语音
+     * 全程容错：未开启 / 缺音频 / 播放被拒绝 都安全返回
+     * @param {number} value - 合并后方块的数值（如 4、8、1024）
+     */
+    play: function (value) {
+      /* 语音关闭时直接忽略 */
+      if (!this.enabled) return;
+
+      const audio = this.audios[value];
+
+      /* 找不到对应音频：静默失败，不影响游戏 */
+      if (!audio) {
+        console.warn("[语音] 未找到数值 " + value + " 对应的音频");
+        return;
+      }
+
+      /* 从头播放：若上一个语音未结束则重新开始，避免叠加延迟 */
+      try {
+        audio.currentTime = 0;
+        /* play() 返回 Promise，捕获浏览器自动播放限制等异常 */
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(function (err) {
+            /* 浏览器拒绝播放（如自动播放策略）时仅记录，不影响游戏 */
+            console.warn("[语音] 播放失败：" + (err && err.message ? err.message : err));
+          });
+        }
+      } catch (err) {
+        /* 极端环境下 play 同步抛错，兜底捕获 */
+        console.warn("[语音] 播放异常：" + (err && err.message ? err.message : err));
+      }
+    }
+  };
 
   /* ========== 初始化 ========== */
 
@@ -301,6 +407,10 @@
 
             /* 更新分数 */
             score += newValue;
+
+            /* 合并成功：播放新方块数值对应的方言语音
+             * （仅在玩家已主动开启语音时发声；播放失败内部已容错） */
+            SoundManager.play(newValue);
 
             /* 创建合并后的新方块 */
             const mergedTile = {
@@ -541,7 +651,17 @@
     initGame();
   });
 
+  /**
+   * 语音开关按钮：由玩家主动点击切换
+   * 此点击属于用户手势，开启后后续合并播放可满足浏览器自动播放策略
+   */
+  btnSound.addEventListener("click", function () {
+    SoundManager.toggle();
+  });
+
   /* ========== 启动游戏 ========== */
+  /* 先初始化语音模块（仅恢复状态与绑定事件，不会播放声音） */
+  SoundManager.init();
   initGame();
 
 })();

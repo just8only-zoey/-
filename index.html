@@ -33,10 +33,32 @@
         </div>
       </div>
 
-      <!-- 副标题：说明 + 新游戏按钮 -->
+      <!-- 副标题：说明 + 操作按钮（语音开关、新游戏） -->
       <div class="sub-header">
         <p class="game-desc">合并相同方言，挑战<strong>老灵诶</strong>！</p>
-        <button class="btn-new-game" id="btn-new-game">新游戏</button>
+        <div class="sub-actions">
+          <!-- 语音开关按钮：默认关闭（静音），由玩家主动点击开启 -->
+          <!-- 两套 SVG 图标：静音态（喇叭+斜杠）/ 开启态（喇叭+声波） -->
+          <button
+            class="btn-sound sound-off"
+            id="btn-sound"
+            type="button"
+            aria-label="开启语音"
+            aria-pressed="false"
+            title="语音开关"
+          >
+            <!-- 开启态图标（声音波） -->
+            <svg class="icon icon-sound-on" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+            <!-- 关闭态图标（静音斜杠） -->
+            <svg class="icon icon-sound-off" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M3 10v4h4l5 5V5L7 10H3zm13.59 2 2.7-2.7-1.42-1.41L15.18 10.6 12.47 7.9l-1.42 1.41 2.71 2.71-2.71 2.71 1.42 1.41 2.71-2.7 2.69 2.7 1.42-1.41-2.7-2.71z"/>
+            </svg>
+          </button>
+          <!-- 新游戏按钮 -->
+          <button class="btn-new-game" id="btn-new-game" type="button">新游戏</button>
+        </div>
       </div>
 
       <!-- 棋盘区域 -->
@@ -83,6 +105,25 @@
         合并相同方言词汇，合成<strong>老灵诶 (1024)</strong> 即为胜利！
       </div>
 
+    </div>
+
+    <!-- ============================================
+         方言语音资源（原生 audio 标签）
+         每个 data-value 与方块数值一一绑定；
+         preload="auto" 提示浏览器预加载，静音关闭时也不自动播放。
+         加载失败由 game.js 做容错，不阻塞游戏。
+         ============================================ -->
+    <div id="audio-pool" class="audio-pool" aria-hidden="true">
+      <audio class="game-audio" data-value="2"    src="/audio/tile-2.mp3"    preload="auto"></audio>
+      <audio class="game-audio" data-value="4"    src="/audio/tile-4.mp3"    preload="auto"></audio>
+      <audio class="game-audio" data-value="8"    src="/audio/tile-8.mp3"    preload="auto"></audio>
+      <audio class="game-audio" data-value="16"   src="/audio/tile-16.mp3"   preload="auto"></audio>
+      <audio class="game-audio" data-value="32"   src="/audio/tile-32.mp3"   preload="auto"></audio>
+      <audio class="game-audio" data-value="64"   src="/audio/tile-64.mp3"   preload="auto"></audio>
+      <audio class="game-audio" data-value="128"  src="/audio/tile-128.mp3"  preload="auto"></audio>
+      <audio class="game-audio" data-value="256"  src="/audio/tile-256.mp3"  preload="auto"></audio>
+      <audio class="game-audio" data-value="512"  src="/audio/tile-512.mp3"  preload="auto"></audio>
+      <audio class="game-audio" data-value="1024" src="/audio/tile-1024.mp3" preload="auto"></audio>
     </div>
 
     <!-- 引入游戏逻辑 -->

@@ -137,6 +137,13 @@ body {
   line-height: 1.4;
 }
 
+/* 按钮操作区：容纳语音开关 + 新游戏按钮 */
+.sub-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .btn-new-game {
   background: #8f7a66;
   color: var(--text-light);
@@ -156,6 +163,75 @@ body {
 
 .btn-new-game:active {
   transform: scale(0.97);
+}
+
+/* --- 语音开关按钮（图标按钮，风格与新游戏按钮统一） --- */
+.btn-sound {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 38px;
+  height: 38px;
+  background: #8f7a66;
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--cell-radius);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-sound:hover {
+  background: #a08b76;
+}
+
+.btn-sound:active {
+  transform: scale(0.94);
+}
+
+/* 键盘聚焦可见性，保证可访问性 */
+.btn-sound:focus-visible {
+  outline: 2px solid var(--text-dark);
+  outline-offset: 2px;
+}
+
+/* 图标切换：默认关闭态显示静音图标 */
+.btn-sound .icon-sound-on {
+  display: none;
+}
+
+.btn-sound .icon-sound-off {
+  display: block;
+}
+
+/* 开启态（sound-on）：显示声波图标，并用金色强调 */
+.btn-sound.sound-on {
+  background: #b8903e;
+}
+
+.btn-sound.sound-on:hover {
+  background: #c9a14a;
+}
+
+.btn-sound.sound-on .icon-sound-on {
+  display: block;
+}
+
+.btn-sound.sound-on .icon-sound-off {
+  display: none;
+}
+
+/* --- 音频资源池：视觉隐藏但仍可被浏览器加载/播放 --- */
+/* 不使用 display:none，避免个别浏览器不加载资源 */
+.audio-pool {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* --- 棋盘容器 --- */
@@ -375,6 +451,21 @@ body {
   .btn-new-game {
     padding: 8px 12px;
     font-size: 12px;
+  }
+
+  /* 语音按钮在移动端缩小，与新游戏按钮高度对齐 */
+  .btn-sound {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-sound .icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .sub-actions {
+    gap: 6px;
   }
 
   /* 方块文字适配小屏 */
